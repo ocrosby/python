@@ -19,23 +19,124 @@ class School:
     long_name: str
     ncaa_url: str
     division: str
-    location: str
+    city: str
+    state: str
     conference: str
     nickname: str
     colors: str
+    loadable: bool
 
     def __init__(self):
         self.short_name = ""
         self.long_name = ""
         self.ncaa_url = ""
         self.division = ""
-        self.location = ""
+        self.city = ""
+        self.state = ""
         self.conference = ""
         self.nickname = ""
         self.colors = ""
+        self.loadable = False
 
     def __str__(self):
         return f"{self.short_name} ({self.long_name})"
+
+    def is_loadable(self) -> bool:
+        return self.loadable
+
+    def normalize(self):
+        if len(self.division.strip()) == 0:
+            self.division = "Unknown"
+
+        if len(self.conference.strip()) == 0:
+            self.conference = "Unknown"
+
+        if len(self.city.strip()) == 0:
+            self.city = "Unknown"
+
+        if len(self.state.strip()) == 0:
+            self.state = "Unknown"
+
+        if len(self.nickname.strip()) == 0:
+            self.nickname = "Unknown"
+
+        if len(self.colors.strip()) == 0:
+            self.colors = "Unknown"
+
+    def should_skip(self) -> bool:
+        if not self.is_loadable():
+            return True
+
+        if self.division in ["", "Unknown"]:
+            return True
+
+        if self.conference in ["", "Unknown"]:
+            return True
+
+        if self.city in ["", "Unknown"]:
+            return True
+
+        if self.state in ["", "Unknown"]:
+            return True
+
+        return False
+
+
+def short_to_long_state(short_state: str) -> str:
+    state_map = {
+        "AL": "Alabama",
+        "AK": "Alaska",
+        "AZ": "Arizona",
+        "AR": "Arkansas",
+        "CA": "California",
+        "CO": "Colorado",
+        "CT": "Connecticut",
+        "DE": "Delaware",
+        "FL": "Florida",
+        "GA": "Georgia",
+        "HI": "Hawaii",
+        "ID": "Idaho",
+        "IL": "Illinois",
+        "IN": "Indiana",
+        "IA": "Iowa",
+        "KS": "Kansas",
+        "KY": "Kentucky",
+        "LA": "Louisiana",
+        "ME": "Maine",
+        "MD": "Maryland",
+        "MA": "Massachusetts",
+        "MI": "Michigan",
+        "MN": "Minnesota",
+        "MS": "Mississippi",
+        "MO": "Missouri",
+        "MT": "Montana",
+        "NE": "Nebraska",
+        "NV": "Nevada",
+        "NH": "New Hampshire",
+        "NJ": "New Jersey",
+        "NM": "New Mexico",
+        "NY": "New York",
+        "NC": "North Carolina",
+        "ND": "North Dakota",
+        "OH": "Ohio",
+        "OK": "Oklahoma",
+        "OR": "Oregon",
+        "PA": "Pennsylvania",
+        "RI": "Rhode Island",
+        "SC": "South Carolina",
+        "SD": "South Dakota",
+        "TN": "Tennessee",
+        "TX": "Texas",
+        "UT": "Utah",
+        "VT": "Vermont",
+        "VA": "Virginia",
+        "WA": "Washington",
+        "WV": "West Virginia",
+        "WI": "Wisconsin",
+        "WY": "Wyoming"
+    }
+
+    return state_map.get(short_state, "Unknown")
 
 
 def generate_page_urls(url: str) -> List[str]:
@@ -89,12 +190,7 @@ def process_url(url: str, max_retries: int) -> List[School]:
                     current_school.long_name = current_school.short_name
 
                 # Test to see if the url seems valid
-                response = requests.head(current_school.ncaa_url)
-                if response.status_code != 200:
-                    with print_lock:
-                        print(f"Skipping {current_school.long_name} ({current_school.ncaa_url}) as the URL is invalid")
-
-                    continue
+                current_school.loadable = requests.head(current_school.ncaa_url).status_code == 200
 
                 schools.append(current_school)
 
@@ -123,6 +219,9 @@ def get_schools(urls: List[str], max_retries: int = 3) -> Tuple[List[School], Li
 
 
 def load_school_details(school: School):
+    if not school.is_loadable():
+        return
+
     response = requests.get(school.ncaa_url)
 
     if response.status_code != 200:
@@ -143,7 +242,13 @@ def load_school_details(school: School):
                 division, location = division_location.split(' - ')
 
                 school.division = division.strip()
-                school.location = location.strip()
+                location = location.strip()
+                city, state = location.split(',')
+                city = city.strip()
+                state = state.strip()
+                school.city = city
+                school.state = state
+                school.state = short_to_long_state(school.state)
             except ValueError as err:
                 pass
 
@@ -155,21 +260,7 @@ def load_school_details(school: School):
         school.nickname = details[1].text.strip()
         school.colors = details[2].text.strip()
 
-    if len(school.conference) == 0:
-        school.conference = "Unknown"
-
-    if len(school.nickname) == 0:
-        school.nickname = "Unknown"
-
-    if len(school.colors) == 0:
-        school.colors = "Unknown"
-
-    if school.location in ["", ","]:
-        school.location = "Unknown"
-
-    if len(school.division) == 0:
-        school.division = "Unknown"
-
+    school.normalize()
 
 def populate_schools(schools: List[School]):
     with ThreadPoolExecutor() as executor:
@@ -197,16 +288,21 @@ if __name__ == "__main__":
     populate_schools(schools)
     print("School details loaded.")
 
-    # Sort the schools list by division and then by short_name within the same division
-    schools = sorted(schools, key=lambda school: (school.division, school.conference, school.short_name))
+    # Sort the schools list by loadable division conference state and then by short_name
+    schools = sorted(schools, key=lambda school: (not school.loadable, school.division, school.conference, school.state, school.short_name))
 
     with open("schools.csv", "w", newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(["short_name", "long_name", "division", "conference", "nickname", "colors", "location", "ncaa_url"])
+        writer.writerow(["Short Name", "Long Name", "Division", "Conference", "Nickname", "Colors", "City", "State", "Loadable", "NCAA URL"])
 
         for school in schools:
+            # if school.should_skip():
+            #     continue
+
+            school.normalize()
+
             try:
-                writer.writerow([school.short_name, school.long_name, school.division, school.conference, school.nickname, school.colors, school.location, school.ncaa_url])
+                writer.writerow([school.short_name, school.long_name, school.division, school.conference, school.nickname, school.colors, school.city, school.state, school.loadable, school.ncaa_url])
             except AttributeError as err:
                 print(f"Error writing {school.short_name}: {err}")
                 print(f"\t{school}")
