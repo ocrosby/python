@@ -125,7 +125,7 @@ if __name__ == "__main__":
     auburn = "https://auburntigers.com/sports/womens-soccer/roster"
     santa_clara = "https://www.santaclarabroncos.com/sports/womens-soccer/roster"
 
-    url = auburn
+    url = santa_clara
 
     players = read_players(url)
     for player in players.values():
