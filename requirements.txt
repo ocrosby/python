@@ -4,3 +4,6 @@ click
 psycopg2
 python-dotenv
 fastapi
+pandas
+matplotlib
+numpy
