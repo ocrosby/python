@@ -1,3 +1,5 @@
+import os
+import csv
 import warnings
 import requests
 
@@ -63,19 +65,27 @@ def read_institutions(filename: str) -> List[str]:
 if __name__ == "__main__":
     institutions = read_institutions('institutions.txt')
 
-    for institution in institutions:
-        try:
-            data = get_population_data(institution)
+    output_file = "population_data.csv"
+    if os.path.exists(output_file):
+        os.remove(output_file)
 
-            if 'Undergraduate' not in data:
-                raise ValueError(f"** Undergraduate population data not found for {institution}")
-            else:
-                population = data['Undergraduate']
-                print(f"The undergraduate population of {institution} is {population}")
-        except ValueError as e:
-            print(e)
-        except Exception as e:
-            print(e)
+    with open(output_file, "w") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["Institution", "Population"])
+
+        for institution in institutions:
+            try:
+                data = get_population_data(institution)
+
+                if 'Undergraduate' not in data:
+                    writer.writerow([institution, "Data not found"])
+                else:
+                    population = data['Undergraduate']
+                    writer.writerow([institution, population])
+            except ValueError as e:
+                print(e)
+            except Exception as e:
+                print(e)
 
 
 
