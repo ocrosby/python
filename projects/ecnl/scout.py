@@ -2,7 +2,7 @@ import os
 import csv
 import requests
 
-from typing import List
+from typing import List, Optional
 from dataclasses import dataclass
 
 """
@@ -14,36 +14,46 @@ https://public.totalglobalsports.com/public/event/3064/college-list
 
 @dataclass
 class Coach:
-    name: str
-    title: str
+    id: str
+    collegeId: int
+    userRoleId: int
+    firstName: str
+    lastName: str
     email: str
-
-    def __init__(self):
-        self.name = ""
-        self.title = ""
-        self.email = ""
+    phone: str
+    role: str
+    roleId: int
+    userId: int
+    userImage: str
+    collegeProgramId: int
+    publish: int
+    statusId: int
+    publicEmail: str
+    publicEmailDisplayEnabled: int
 
 
 @dataclass
-class Program:
-    name: str
-    sport: str
-    division: str
-    conference: str
-    location: str
+class CollegeInfo:
+    programId: int
+    description: str
+    collegeId: int
+    sportId: int
+    eventId: int
+    collegeName: str
+    city: str
     type: str
-    website: str
+    logo: str
+    statecode: str
+    conferenceName: str
+    collegeDivisionId: int
+    collegeDivisionName: str
+    gender: str
+    webSite: str
+    status: str
+    publish: int
+    stateId: int
+    collegeConferenceId: int
     coaches: List[Coach]
-
-    def __init__(self):
-        self.name = ""
-        self.sport = ""
-        self.division = ""
-        self.conference = ""
-        self.location = ""
-        self.type = ""
-        self.website = ""
-        self.coaches = []
 
 
 @dataclass
@@ -62,12 +72,49 @@ class Conference:
 @dataclass
 class State:
     id: int
-    regionId: int | None
-    countryId: int | None
+    regionId: Optional[int]
+    countryId: Optional[int]
     code: str
     name: str
     image: str
     timeZoneId: str
+
+
+@dataclass
+class EventData:
+    eventID: int
+    eventLogo: str
+    eventPublicBanner: Optional[str]
+    eventBGImage: Optional[str]
+    eventBGColor: str
+    name: str
+    description: Optional[str]
+    feeSummary: str
+    orgTypeID: int
+    regStartDate: Optional[str]
+    regEndDate: Optional[str]
+    regStatus: bool
+    regStatusText: str
+    location: str
+    address: str
+    city: str
+    zip: str
+    stateID: int
+    eventSubTypeID: int
+    eventStartDate: str
+    eventEndDate: str
+    eventFeatures: Optional[str]
+    tournamentPurchaseCost: int
+    paymentDate: str
+    transactionID: Optional[str]
+    cardType: Optional[str]
+    maskedCardNum: Optional[str]
+    originalAmount: Optional[str]
+    discountAmount: Optional[str]
+    orgID: int
+    appID: str
+    stateCode: str
+
 
 def get_college_division_list() -> List[Division]:
     url = "https://public.totalglobalsports.com/api/player/get-college-division-list"
@@ -75,8 +122,8 @@ def get_college_division_list() -> List[Division]:
     data = response.json()
 
     divisions = []
-    for item in data['data']:
-        division = Division(id=item['collegeDivisionID'], name=item['collegeDivisionName'])
+    for item in data["data"]:
+        division = Division(id=item["collegeDivisionID"], name=item["collegeDivisionName"])
         divisions.append(division)
 
     return divisions
@@ -88,10 +135,10 @@ def get_college_conference_list() -> List[Conference]:
     data = response.json()
 
     conferences = []
-    for item in data['data']:
-        conference = Conference(id=item['collegeconferenceID'],
-                                divisionId=item['collegedivisionID'],
-                                name=item['conferencename'])
+    for item in data["data"]:
+        conference = Conference(id=item["collegeconferenceID"],
+                                divisionId=item["collegedivisionID"],
+                                name=item["conferencename"])
         conferences.append(conference)
 
     return conferences
@@ -104,14 +151,14 @@ def get_all_states() -> List[State]:
     data = response.json()
 
     states = []
-    for item in data['data']:
-        state = State(id=item['stateID'],
-                      regionId=item['regionID'],
-                      countryId=item['countryID'],
-                      code=item['stateCode'],
-                      name=item['stateName'],
-                      image=item['stateImage'],
-                      timeZoneId=item['timeZoneID'])
+    for item in data["data"]:
+        state = State(id=item["stateID"],
+                      regionId=item["regionID"],
+                      countryId=item["countryID"],
+                      code=item["stateCode"],
+                      name=item["stateName"],
+                      image=item["stateImage"],
+                      timeZoneId=item["timeZoneID"])
         states.append(state)
 
     return states
@@ -119,45 +166,110 @@ def get_all_states() -> List[State]:
 
 
 
-def get_event_details(eventId: int):
-    url = f"https://public.totalglobalsports.com/public/event/{eventId}/college-list"
+def get_event_details(eventId: int) -> EventData:
+    # url = f"https://public.totalglobalsports.com/public/event/{eventId}/college-list"
+    url = f"https://public.totalglobalsports.com/api/Event/get-event-details-by-eventID/{eventId}"
 
+    response = requests.get(url)
+    data = response.json().get("data")
+
+    event = EventData(eventID=data["eventID"],
+                      eventLogo=data["eventLogo"],
+                      eventPublicBanner=data["eventPublicBanner"],
+                      eventBGImage=data["eventBGImage"],
+                      eventBGColor=data["eventBGColor"],
+                      name=data["name"],
+                      description=data["description"],
+                      feeSummary=data["feeSummary"],
+                      orgTypeID=data["orgTypeID"],
+                      regStartDate=data["regStartDate"],
+                      regEndDate=data["regEndDate"],
+                      regStatus=data["regStatus"],
+                      regStatusText=data["regStatusText"],
+                      location=data["location"],
+                      address=data["address"],
+                      city=data["city"],
+                      zip=data["zip"],
+                      stateID=data["stateID"],
+                      eventSubTypeID=data["eventSubTypeID"],
+                      eventStartDate=data["eventStartDate"],
+                      eventEndDate=data["eventEndDate"],
+                      eventFeatures=data["eventFeatures"],
+                      tournamentPurchaseCost=data["tournamentPurchaseCost"],
+                      paymentDate=data["paymentDate"],
+                      transactionID=data["transactionID"],
+                      cardType=data["cardType"],
+                      maskedCardNum=data["maskedCardNum"],
+                      originalAmount=data["originalAmount"],
+                      discountAmount=data["discountAmount"],
+                      orgID=data["orgID"],
+                      appID=data["appID"],
+                      stateCode=data["stateCode"])
+
+    return event
+
+
+def get_colleges_attending_list_with_coaches_by_event(eventId: int) -> List[CollegeInfo]:
+    url = f"https://public.totalglobalsports.com/api/Event/get-colleges-attending-list-with-coaches-by-event/{eventId}"
     response = requests.get(url)
     data = response.json()
 
+    infos = []
+    for item in data["data"]:
+        info = CollegeInfo(programId=item["collegeInfo"]["collegeprogramID"],
+                           description=item["collegeInfo"]["description"],
+                           collegeId=item["collegeInfo"]["collegeID"],
+                           sportId=item["collegeInfo"]["sportID"],
+                           eventId=item["collegeInfo"]["eventID"],
+                           collegeName=item["collegeInfo"]["collegename"],
+                           city=item["collegeInfo"]["city"],
+                           type=item["collegeInfo"]["type"],
+                           logo=item["collegeInfo"]["logo"],
+                           statecode=item["collegeInfo"]["statecode"],
+                           conferenceName=item["collegeInfo"]["conferencename"],
+                           collegeDivisionId=item["collegeInfo"]["collegeDivisionID"],
+                           collegeDivisionName=item["collegeInfo"]["collegedivisionname"],
+                           gender=item["collegeInfo"]["gender"],
+                           webSite=item["collegeInfo"]["webSite"],
+                           status=item["collegeInfo"]["status"],
+                           publish=item["collegeInfo"]["publish"],
+                           stateId=item["collegeInfo"]["stateID"],
+                           collegeConferenceId=item["collegeInfo"]["collegeConferenceID"],
+                           coaches=[])
 
-def get_colleges_attending_list_with_coaches_by_event(eventId: int) -> List[Program]:
-    url = f"https://public.totalglobalsports.com/api/player/get-colleges-attending-list-with-coaches-by-event/{eventId}"
-    response = requests.get(url)
-    data = response.json()
+        for coach in item["coachList"]:
+            c = Coach(id=coach["id"],
+                      collegeId=coach["collegeid"],
+                      userRoleId=coach["userRoleID"],
+                      firstName=coach["firstname"],
+                      lastName=coach["lastname"],
+                      email=coach["email"],
+                      phone=coach["phone"],
+                      role=coach["role"],
+                      roleId=coach["roleID"],
+                      userId=coach["userid"],
+                      userImage=coach["userImage"],
+                      collegeProgramId=coach["collegeprogramID"],
+                      publish=coach["publish"],
+                      statusId=coach["statusID"],
+                      publicEmail=coach["publicEmail"],
+                      publicEmailDisplayEnabled=coach["publicEmailDisplayEnabled"])
 
-    programs = []
-    for item in data['data']:
-        program = Program()
-        program.name = item['collegeName']
-        program.sport = item['sportName']
-        program.division = item['collegeDivisionName']
-        program.conference = item['conferenceName']
-        program.location = item['location']
-        program.type = item['type']
-        program.website = item['website']
+            info.coaches.append(c)
 
-        for coach in item['coaches']:
-            c = Coach()
-            c.name = coach['name']
-            c.title = coach['title']
-            c.email = coach['email']
-            program.coaches.append(c)
+        infos.append(info)
 
-        programs.append(program)
-
-    return programs
+    return infos
 
 
 if __name__ == "__main__":
+    eventId = 3064
+
     divisions = get_college_division_list()
     conferences = get_college_conference_list()
     states = get_all_states()
+    event = get_event_details(eventId)
+    colleges = get_colleges_attending_list_with_coaches_by_event(eventId)
 
     output_file = "divisions.csv"
 
@@ -196,15 +308,22 @@ if __name__ == "__main__":
         for state in states:
             writer.writerow([state.id, state.name, state.code, state.image, state.timeZoneId])
 
-    # output_file = "scout.csv"
-    #
-    # if os.path.exists(output_file):
-    #     os.remove(output_file)
-    #
-    # with open(output_file, "w", newline="") as f:
-    #     writer = csv.writer(f)
-    #     writer.writerow(["University", "Sport", "Division", "Conference", "Location", "Type", "Website", "Coach Name", "Coach Title", "Coach Email"])
-    #
-    #     for program in programs:
-    #         for coach in program.coaches:
-    #             writer.writerow([program.name, program.sport, program.division, program.conference, program.location, program.type, program.website, coach.name, coach.title, coach.email])
+    output_file = "scout.csv"
+
+    if os.path.exists(output_file):
+        os.remove(output_file)
+
+    with open(output_file, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["College Name", "City", "State", "URL", "Name", "Role", "Email", "Phone"])
+
+        for college in colleges:
+            for coach in college.coaches:
+                writer.writerow([college.collegeName,
+                                 college.city,
+                                 college.statecode,
+                                 college.webSite,
+                                 f"{coach.firstName} {coach.lastName}",
+                                 coach.role,
+                                 coach.email,
+                                 coach.phone])
