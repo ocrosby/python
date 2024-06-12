@@ -4,7 +4,12 @@ import requests
 
 from typing import List
 from dataclasses import dataclass
-from bs4 import BeautifulSoup
+
+"""
+This code is written based of evaluations from
+
+https://public.totalglobalsports.com/public/event/3064/college-list
+"""
 
 
 @dataclass
