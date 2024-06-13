@@ -366,10 +366,12 @@ if __name__ == "__main__":
 
     with open(output_file, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["College Name", "City", "State", "URL", "Name", "Role", "Email", "Phone"])
+        writer.writerow(["College Name", "Division", "Conference", "City", "State", "URL", "Name", "Role", "Email", "Phone"])
 
         for college, coach in accumulator:
             writer.writerow([college.collegeName,
+                             college.collegeDivisionName,
+                             college.conferenceName,
                              college.city,
                              college.statecode,
                              college.webSite,
