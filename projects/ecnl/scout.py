@@ -33,7 +33,7 @@ class Coach:
 
 
 @dataclass
-class CollegeInfo:
+class Program:
     programId: int
     description: str
     collegeId: int
@@ -81,7 +81,7 @@ class State:
 
 
 @dataclass
-class EventData:
+class Event:
     eventID: int
     eventLogo: str
     eventPublicBanner: Optional[str]
@@ -114,7 +114,7 @@ class EventData:
     orgID: int
     appID: str
     stateCode: str
-    colleges: List[CollegeInfo]
+    programs: List[Program]
 
 
 def get_college_division_list() -> List[Division]:
@@ -165,76 +165,77 @@ def get_all_states() -> List[State]:
     return states
 
 
-def get_event_details(eventId: int) -> EventData:
+def get_event_by_id(eventId: int) -> Event:
     # url = f"https://public.totalglobalsports.com/public/event/{eventId}/college-list"
     url = f"https://public.totalglobalsports.com/api/Event/get-event-details-by-eventID/{eventId}"
 
     response = requests.get(url)
     data = response.json().get("data")
 
-    event = EventData(eventID=data["eventID"],
-                      eventLogo=data["eventLogo"],
-                      eventPublicBanner=data["eventPublicBanner"],
-                      eventBGImage=data["eventBGImage"],
-                      eventBGColor=data["eventBGColor"],
-                      name=data["name"],
-                      description=data["description"],
-                      feeSummary=data["feeSummary"],
-                      orgTypeID=data["orgTypeID"],
-                      regStartDate=data["regStartDate"],
-                      regEndDate=data["regEndDate"],
-                      regStatus=data["regStatus"],
-                      regStatusText=data["regStatusText"],
-                      location=data["location"],
-                      address=data["address"],
-                      city=data["city"],
-                      zip=data["zip"],
-                      stateID=data["stateID"],
-                      eventSubTypeID=data["eventSubTypeID"],
-                      eventStartDate=data["eventStartDate"],
-                      eventEndDate=data["eventEndDate"],
-                      eventFeatures=data["eventFeatures"],
-                      tournamentPurchaseCost=data["tournamentPurchaseCost"],
-                      paymentDate=data["paymentDate"],
-                      transactionID=data["transactionID"],
-                      cardType=data["cardType"],
-                      maskedCardNum=data["maskedCardNum"],
-                      originalAmount=data["originalAmount"],
-                      discountAmount=data["discountAmount"],
-                      orgID=data["orgID"],
-                      appID=data["appID"],
-                      stateCode=data["stateCode"])
+    event = Event(eventID=data["eventID"],
+                  eventLogo=data["eventLogo"],
+                  eventPublicBanner=data["eventPublicBanner"],
+                  eventBGImage=data["eventBGImage"],
+                  eventBGColor=data["eventBGColor"],
+                  name=data["name"],
+                  description=data["description"],
+                  feeSummary=data["feeSummary"],
+                  orgTypeID=data["orgTypeID"],
+                  regStartDate=data["regStartDate"],
+                  regEndDate=data["regEndDate"],
+                  regStatus=data["regStatus"],
+                  regStatusText=data["regStatusText"],
+                  location=data["location"],
+                  address=data["address"],
+                  city=data["city"],
+                  zip=data["zip"],
+                  stateID=data["stateID"],
+                  eventSubTypeID=data["eventSubTypeID"],
+                  eventStartDate=data["eventStartDate"],
+                  eventEndDate=data["eventEndDate"],
+                  eventFeatures=data["eventFeatures"],
+                  tournamentPurchaseCost=data["tournamentPurchaseCost"],
+                  paymentDate=data["paymentDate"],
+                  transactionID=data["transactionID"],
+                  cardType=data["cardType"],
+                  maskedCardNum=data["maskedCardNum"],
+                  originalAmount=data["originalAmount"],
+                  discountAmount=data["discountAmount"],
+                  orgID=data["orgID"],
+                  appID=data["appID"],
+                  stateCode=data["stateCode"],
+                  programs=[])
 
     return event
 
 
-def get_colleges_attending_list_with_coaches_by_event(eventId: int) -> List[CollegeInfo]:
+def get_attending_programs(eventId: int) -> List[Program]:
     url = f"https://public.totalglobalsports.com/api/Event/get-colleges-attending-list-with-coaches-by-event/{eventId}"
     response = requests.get(url)
     data = response.json()
 
     infos = []
     for item in data["data"]:
-        info = CollegeInfo(programId=item["collegeInfo"]["collegeprogramID"],
-                           description=item["collegeInfo"]["description"],
-                           collegeId=item["collegeInfo"]["collegeID"],
-                           sportId=item["collegeInfo"]["sportID"],
-                           eventId=item["collegeInfo"]["eventID"],
-                           collegeName=item["collegeInfo"]["collegename"],
-                           city=item["collegeInfo"]["city"],
-                           type=item["collegeInfo"]["type"],
-                           logo=item["collegeInfo"]["logo"],
-                           statecode=item["collegeInfo"]["statecode"],
-                           conferenceName=item["collegeInfo"]["conferencename"],
-                           collegeDivisionId=item["collegeInfo"]["collegeDivisionID"],
-                           collegeDivisionName=item["collegeInfo"]["collegedivisionname"],
-                           gender=item["collegeInfo"]["gender"],
-                           webSite=item["collegeInfo"]["webSite"],
-                           status=item["collegeInfo"]["status"],
-                           publish=item["collegeInfo"]["publish"],
-                           stateId=item["collegeInfo"]["stateID"],
-                           collegeConferenceId=item["collegeInfo"]["collegeConferenceID"],
-                           coaches=[])
+        info = Program(programId=item["collegeInfo"]["collegeprogramID"],
+                       description=item["collegeInfo"]["description"],
+                       collegeId=item["collegeInfo"]["collegeID"],
+                       sportId=item["collegeInfo"]["sportID"],
+                       eventId=item["collegeInfo"]["eventID"],
+                       collegeName=item["collegeInfo"]["collegename"],
+                       city=item["collegeInfo"]["city"],
+                       type=item["collegeInfo"]["type"],
+                       logo=item["collegeInfo"]["logo"],
+                       statecode=item["collegeInfo"]["statecode"],
+                       conferenceName=item["collegeInfo"]["conferencename"],
+                       collegeDivisionId=item["collegeInfo"]["collegeDivisionID"],
+                       collegeDivisionName=item["collegeInfo"]["collegedivisionname"],
+                       gender=item["collegeInfo"]["gender"],
+                       webSite=item["collegeInfo"]["webSite"],
+                       status=item["collegeInfo"]["status"],
+                       publish=item["collegeInfo"]["publish"],
+                       stateId=item["collegeInfo"]["stateID"],
+                       collegeConferenceId=item["collegeInfo"]["collegeConferenceID"],
+                       coaches=[])
 
         for coach in item["coachList"]:
             c = Coach(id=coach["id"],
@@ -261,7 +262,7 @@ def get_colleges_attending_list_with_coaches_by_event(eventId: int) -> List[Coll
     return infos
 
 
-def find_coach(coach: Coach, accumulator: List[Tuple[CollegeInfo, Coach]]) -> int:
+def find_coach(coach: Coach, accumulator: List[Tuple[Program, Coach]]) -> int:
     for i, (current_college, current_coach) in enumerate(accumulator):
         if coach.id == current_coach.id:
             return i
@@ -273,20 +274,17 @@ def process_event(eventId: int,
                   states: List[State],
                   divisions: List[Division],
                   conferences: List[Conference],
-                  events: List[EventData],
-                  colleges: List[CollegeInfo],
-                  coaches: List[Coach],
-                  accumulator: List[Tuple[CollegeInfo, Coach]]):
-    event = get_event_details(eventId)
+                  events: List[Event],
+                  programs: List[Program],
+                  coaches: List[Coach]):
+    event = get_event_by_id(eventId)
 
     # Don't add duplicate event names
-
     if not any(e.name == event.name for e in events):
+        events.append(event)
 
+    programs = get_attending_programs(eventId)
 
-    events.append(event)
-
-    colleges = get_colleges_attending_list_with_coaches_by_event(eventId)
 
     output_file = f"{eventId}_scout.csv"
 
@@ -297,22 +295,30 @@ def process_event(eventId: int,
         writer = csv.writer(f)
         writer.writerow(["College Name", "City", "State", "URL", "Name", "Role", "Email", "Phone"])
 
-        for college in colleges:
-            for coach in college.coaches:
-                writer.writerow([college.collegeName,
-                                 college.city,
-                                 college.statecode,
-                                 college.webSite,
+        for program in programs:
+            event.programs.append(program)
+
+            for coach in program.coaches:
+                writer.writerow([program.collegeName,
+                                 program.city,
+                                 program.statecode,
+                                 program.webSite,
                                  f"{coach.firstName} {coach.lastName}",
                                  coach.role,
                                  coach.email,
                                  coach.phone])
 
-                # Check if college and coach are already in accumulator
-                if not any(
-                        c.collegeName == college.collegeName and o.firstName == coach.firstName and o.lastName == coach.lastName
-                        for c, o in accumulator):
-                    accumulator.append((college, coach))
+                # Check if event is already in events
+                if not any(e.name == event.name for e in events):
+                    events.append(event)
+
+                # Check if program is already in programs
+                if not any(p.collegeName == program.collegeName for p in programs):
+                    programs.append(program)
+
+                # Check if coach is already in coaches
+                if not any(c.firstName == coach.firstName and c.lastName == coach.lastName for c in coaches):
+                    coaches.append(coach)
 
 
 def save_divisions(divisions: List[Division]):
@@ -355,7 +361,8 @@ def save_states(states: List[State]):
         for state in states:
             writer.writerow([state.id, state.name, state.code, state.image, state.timeZoneId])
 
-def save_scouts(states: List[State], divisions: List[Division], conferences: List[Conference], events: List[EventData], colleges: List[CollegeInfo], coaches: List[Coach], accumulator: List[Tuple[CollegeInfo, Coach]]):
+
+def save_scouts(states: List[State], divisions: List[Division], conferences: List[Conference], events: List[Event], programs: List[Program], coaches: List[Coach], accumulator: List[Tuple[Program, Coach]]):
     output_file = "scout.csv"
 
     if os.path.exists(output_file):
@@ -368,13 +375,13 @@ def save_scouts(states: List[State], divisions: List[Division], conferences: Lis
         writer = csv.writer(f)
         writer.writerow(["College Name", "Division", "Conference", "City", "State", "URL", "Name", "Role", "Email", "Phone"])
 
-        for college, coach in accumulator:
-            writer.writerow([college.collegeName,
-                             college.collegeDivisionName,
-                             college.conferenceName,
-                             college.city,
-                             college.statecode,
-                             college.webSite,
+        for program, coach in accumulator:
+            writer.writerow([program.collegeName,
+                             program.collegeDivisionName,
+                             program.conferenceName,
+                             program.city,
+                             program.statecode,
+                             program.webSite,
                              f"{coach.firstName} {coach.lastName}",
                              coach.role,
                              coach.email,
@@ -383,7 +390,7 @@ def save_scouts(states: List[State], divisions: List[Division], conferences: Lis
 
 if __name__ == "__main__":
     events = []
-    colleges = []
+    programs = []
     coaches = []
 
     divisions = get_college_division_list()
@@ -396,20 +403,24 @@ if __name__ == "__main__":
     save_conferences(conferences)
     save_states(states)
 
-    process_event(3009, states, divisions, conferences, events, colleges, coaches, accumulator)
-    process_event(3010, states, divisions, conferences, events, colleges, coaches, accumulator)
-    process_event(2992, states, divisions, conferences, events, colleges, coaches, accumulator)
-    process_event(3016, states, divisions, conferences, events, colleges, coaches, accumulator)
-    process_event(3028, states, divisions, conferences, events, colleges, coaches, accumulator)
-    process_event(3030, states, divisions, conferences, events, colleges, coaches, accumulator)
-    process_event(3031, states, divisions, conferences, events, colleges, coaches, accumulator)
-    process_event(3033, states, divisions, conferences, events, colleges, coaches, accumulator)
-    process_event(3035, states, divisions, conferences, events, colleges, coaches, accumulator)
-    process_event(3036, states, divisions, conferences, events, colleges, coaches, accumulator)
-    process_event(3064, states, divisions, conferences, events, colleges, coaches, accumulator)
+    process_event(3009, states, divisions, conferences, events, programs, coaches)
+    process_event(3010, states, divisions, conferences, events, programs, coaches)
+    process_event(2992, states, divisions, conferences, events, programs, coaches)
+    process_event(3016, states, divisions, conferences, events, programs, coaches)
+    process_event(3028, states, divisions, conferences, events, programs, coaches)
+    process_event(3030, states, divisions, conferences, events, programs, coaches)
+    process_event(3031, states, divisions, conferences, events, programs, coaches)
+    process_event(3033, states, divisions, conferences, events, programs, coaches)
+    process_event(3035, states, divisions, conferences, events, programs, coaches)
+    process_event(3036, states, divisions, conferences, events, programs, coaches)
+    process_event(3064, states, divisions, conferences, events, programs, coaches)
 
     # Sort the accumulator by college name then by coach name
-    accumulator.sort(key=lambda x: (x[0].collegeName, x[1].lastName, x[1].firstName))
+    accumulator.sort(key=lambda x: (x[0].collegeDivisionName,
+                                    x[0].conferenceName,
+                                    x[0].collegeName,
+                                    x[1].lastName,
+                                    x[1].firstName))
 
-    save_scouts(states, divisions, conferences, events, colleges, coaches, accumulator)
+    save_scouts(states, divisions, conferences, events, programs, coaches, accumulator)
 
