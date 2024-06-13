@@ -114,6 +114,7 @@ class EventData:
     orgID: int
     appID: str
     stateCode: str
+    colleges: List[CollegeInfo]
 
 
 def get_college_division_list() -> List[Division]:
@@ -162,8 +163,6 @@ def get_all_states() -> List[State]:
         states.append(state)
 
     return states
-
-
 
 
 def get_event_details(eventId: int) -> EventData:
@@ -270,8 +269,23 @@ def find_coach(coach: Coach, accumulator: List[Tuple[CollegeInfo, Coach]]) -> in
     return -1
 
 
-def process_event(eventId: int, accumulator: List[Tuple[CollegeInfo, Coach]]):
+def process_event(eventId: int,
+                  states: List[State],
+                  divisions: List[Division],
+                  conferences: List[Conference],
+                  events: List[EventData],
+                  colleges: List[CollegeInfo],
+                  coaches: List[Coach],
+                  accumulator: List[Tuple[CollegeInfo, Coach]]):
     event = get_event_details(eventId)
+
+    # Don't add duplicate event names
+
+    if not any(e.name == event.name for e in events):
+
+
+    events.append(event)
+
     colleges = get_colleges_attending_list_with_coaches_by_event(eventId)
 
     output_file = f"{eventId}_scout.csv"
@@ -301,13 +315,7 @@ def process_event(eventId: int, accumulator: List[Tuple[CollegeInfo, Coach]]):
                     accumulator.append((college, coach))
 
 
-if __name__ == "__main__":
-    divisions = get_college_division_list()
-    conferences = get_college_conference_list()
-    states = get_all_states()
-
-    accumulator = []
-
+def save_divisions(divisions: List[Division]):
     output_file = f"divisions.csv"
 
     if os.path.exists(output_file):
@@ -320,6 +328,8 @@ if __name__ == "__main__":
         for division in divisions:
             writer.writerow([division.id, division.name])
 
+
+def save_conferences(conferences: List[Conference]):
     output_file = f"conferences.csv"
 
     if os.path.exists(output_file):
@@ -332,6 +342,7 @@ if __name__ == "__main__":
         for conference in conferences:
             writer.writerow([conference.id, conference.divisionId, conference.name])
 
+def save_states(states: List[State]):
     output_file = f"states.csv"
 
     if os.path.exists(output_file):
@@ -344,18 +355,7 @@ if __name__ == "__main__":
         for state in states:
             writer.writerow([state.id, state.name, state.code, state.image, state.timeZoneId])
 
-    process_event(3009, accumulator)
-    process_event(3010, accumulator)
-    process_event(2992, accumulator)
-    process_event(3016, accumulator)
-    process_event(3028, accumulator)
-    process_event(3030, accumulator)
-    process_event(3031, accumulator)
-    process_event(3033, accumulator)
-    process_event(3035, accumulator)
-    process_event(3036, accumulator)
-    process_event(3064, accumulator)
-
+def save_scouts(states: List[State], divisions: List[Division], conferences: List[Conference], events: List[EventData], colleges: List[CollegeInfo], coaches: List[Coach], accumulator: List[Tuple[CollegeInfo, Coach]]):
     output_file = "scout.csv"
 
     if os.path.exists(output_file):
@@ -379,3 +379,37 @@ if __name__ == "__main__":
                              coach.role,
                              coach.email,
                              coach.phone])
+
+
+if __name__ == "__main__":
+    events = []
+    colleges = []
+    coaches = []
+
+    divisions = get_college_division_list()
+    conferences = get_college_conference_list()
+    states = get_all_states()
+
+    accumulator = []
+
+    save_divisions(divisions)
+    save_conferences(conferences)
+    save_states(states)
+
+    process_event(3009, states, divisions, conferences, events, colleges, coaches, accumulator)
+    process_event(3010, states, divisions, conferences, events, colleges, coaches, accumulator)
+    process_event(2992, states, divisions, conferences, events, colleges, coaches, accumulator)
+    process_event(3016, states, divisions, conferences, events, colleges, coaches, accumulator)
+    process_event(3028, states, divisions, conferences, events, colleges, coaches, accumulator)
+    process_event(3030, states, divisions, conferences, events, colleges, coaches, accumulator)
+    process_event(3031, states, divisions, conferences, events, colleges, coaches, accumulator)
+    process_event(3033, states, divisions, conferences, events, colleges, coaches, accumulator)
+    process_event(3035, states, divisions, conferences, events, colleges, coaches, accumulator)
+    process_event(3036, states, divisions, conferences, events, colleges, coaches, accumulator)
+    process_event(3064, states, divisions, conferences, events, colleges, coaches, accumulator)
+
+    # Sort the accumulator by college name then by coach name
+    accumulator.sort(key=lambda x: (x[0].collegeName, x[1].lastName, x[1].firstName))
+
+    save_scouts(states, divisions, conferences, events, colleges, coaches, accumulator)
+
