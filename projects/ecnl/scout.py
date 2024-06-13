@@ -2,7 +2,7 @@ import os
 import csv
 import requests
 
-from typing import List, Optional
+from typing import List, Tuple, Optional
 from dataclasses import dataclass
 
 """
@@ -262,53 +262,19 @@ def get_colleges_attending_list_with_coaches_by_event(eventId: int) -> List[Coll
     return infos
 
 
-if __name__ == "__main__":
-    eventId = 3064
+def find_coach(coach: Coach, accumulator: List[Tuple[CollegeInfo, Coach]]) -> int:
+    for i, (current_college, current_coach) in enumerate(accumulator):
+        if coach.id == current_coach.id:
+            return i
 
-    divisions = get_college_division_list()
-    conferences = get_college_conference_list()
-    states = get_all_states()
+    return -1
+
+
+def process_event(eventId: int, accumulator: List[Tuple[CollegeInfo, Coach]]):
     event = get_event_details(eventId)
     colleges = get_colleges_attending_list_with_coaches_by_event(eventId)
 
-    output_file = "divisions.csv"
-
-    if os.path.exists(output_file):
-        os.remove(output_file)
-
-    with open(output_file, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["ID", "Name"])
-
-        for division in divisions:
-            writer.writerow([division.id, division.name])
-
-    output_file = "conferences.csv"
-
-    if os.path.exists(output_file):
-        os.remove(output_file)
-
-    with open(output_file, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["ID", "Division ID", "Name"])
-
-        for conference in conferences:
-            writer.writerow([conference.id, conference.divisionId, conference.name])
-
-
-    output_file = "states.csv"
-
-    if os.path.exists(output_file):
-        os.remove(output_file)
-
-    with open(output_file, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["ID", "Name", "Code", "Image", "Time Zone ID"])
-
-        for state in states:
-            writer.writerow([state.id, state.name, state.code, state.image, state.timeZoneId])
-
-    output_file = "scout.csv"
+    output_file = f"{eventId}_scout.csv"
 
     if os.path.exists(output_file):
         os.remove(output_file)
@@ -327,3 +293,87 @@ if __name__ == "__main__":
                                  coach.role,
                                  coach.email,
                                  coach.phone])
+
+                # Check if college and coach are already in accumulator
+                if not any(
+                        c.collegeName == college.collegeName and o.firstName == coach.firstName and o.lastName == coach.lastName
+                        for c, o in accumulator):
+                    accumulator.append((college, coach))
+
+
+if __name__ == "__main__":
+    divisions = get_college_division_list()
+    conferences = get_college_conference_list()
+    states = get_all_states()
+
+    accumulator = []
+
+    output_file = f"divisions.csv"
+
+    if os.path.exists(output_file):
+        os.remove(output_file)
+
+    with open(output_file, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["ID", "Name"])
+
+        for division in divisions:
+            writer.writerow([division.id, division.name])
+
+    output_file = f"conferences.csv"
+
+    if os.path.exists(output_file):
+        os.remove(output_file)
+
+    with open(output_file, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["ID", "Division ID", "Name"])
+
+        for conference in conferences:
+            writer.writerow([conference.id, conference.divisionId, conference.name])
+
+    output_file = f"states.csv"
+
+    if os.path.exists(output_file):
+        os.remove(output_file)
+
+    with open(output_file, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["ID", "Name", "Code", "Image", "Time Zone ID"])
+
+        for state in states:
+            writer.writerow([state.id, state.name, state.code, state.image, state.timeZoneId])
+
+    process_event(3009, accumulator)
+    process_event(3010, accumulator)
+    process_event(2992, accumulator)
+    process_event(3016, accumulator)
+    process_event(3028, accumulator)
+    process_event(3030, accumulator)
+    process_event(3031, accumulator)
+    process_event(3033, accumulator)
+    process_event(3035, accumulator)
+    process_event(3036, accumulator)
+    process_event(3064, accumulator)
+
+    output_file = "scout.csv"
+
+    if os.path.exists(output_file):
+        os.remove(output_file)
+
+    # Sort the accumulator by college name then by coach name
+    accumulator.sort(key=lambda x: (x[0].collegeName, x[1].lastName, x[1].firstName))
+
+    with open(output_file, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["College Name", "City", "State", "URL", "Name", "Role", "Email", "Phone"])
+
+        for college, coach in accumulator:
+            writer.writerow([college.collegeName,
+                             college.city,
+                             college.statecode,
+                             college.webSite,
+                             f"{coach.firstName} {coach.lastName}",
+                             coach.role,
+                             coach.email,
+                             coach.phone])
