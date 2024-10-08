@@ -1,5 +1,5 @@
 """
-This module contains functions for scraping data from NCAA websites that use the Sidearm Sports platform.
+This module contains examples for scraping data from NCAA websites that use the Sidearm Sports platform.
 """
 
 import os
