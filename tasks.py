@@ -1,3 +1,5 @@
+from encodings.aliases import aliases
+
 from invoke import task
 import os
 import shutil
@@ -8,7 +10,8 @@ def install(c):
     c.run('pip install --upgrade pip')
     c.run('pip install -r requirements.txt')
 
-@task
+@task(aliases=['c'])
 def clean(c):
     """Clean up the project by removing __pycache__ directories and .pyc files."""
-    pass
+    c.run('find . -name "__pycache__" -type d -exec rm -r {} +')
+    c.run('find . -name "*.pyc" -type f -delete')
