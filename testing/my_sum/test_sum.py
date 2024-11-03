@@ -1,19 +1,31 @@
-import unittest
+import pytest
 
+def mysum(a: int, b: int) -> int:
+    return a + b
 
-class TestSum(unittest.TestCase):
-    def test_sum(self):
-        """
-        Test that it can add a list of integers
-        """
-        self.assertEqual(sum([1, 2, 3]), 6, "Should be 6")
+@pytest.mark.parametrize("a, b, expected", [
+    (1, 2, 3),
+    (1, 1, 2),
+    (1, 0, 1),
+    (0, 0, 0),
+    (-1, 1, 0),
+    (-1, -1, -2),
+    (-1, 0, -1),
+    (0, -1, -1),
+],
+ids=[
+ "positive numbers",
+ "positive numbers with 1",
+ "positive and zero",
+ "zero",
+ "negative and positive",
+ "negative numbers",
+ "negative and zero",
+ "zero and negative",
+])
+def test_sum(a: int, b: int, expected: int):
+    # Act
+    result = mysum(a, b)
 
-    def test_sum_tuple(self):
-        """
-        Test that it can add a tuple of integers
-        """
-        self.assertEqual(sum((1, 2, 2)), 5, "Should be 5")
-
-
-if __name__ == '__main__':
-    unittest.main()
+    # Assert
+    assert result == expected
